@@ -1,0 +1,13 @@
+{
+  "*.{js,jsx,ts,tsx}": [
+    "prettier --write",
+    "eslint --fix"
+  ],
+  "*.py": [
+    "black",
+    "flake8 --max-line-length=100"
+  ],
+  "*.{json,md,yml,yaml}": [
+    "prettier --write"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "@career/config-typescript",
+  "version": "1.0.0",
+  "private": true,
+  "files": ["tsconfig.base.json", "tsconfig.nextjs.json", "tsconfig.react.json"]
+}

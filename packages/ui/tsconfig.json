@@ -1,0 +1,9 @@
+{
+  "extends": "@career/config-typescript/tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  },
+  "include": ["src/**/*"]
+}
