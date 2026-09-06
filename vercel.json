@@ -1,0 +1,10 @@
+{
+  "builds": [
+    {
+      "src": "apps/api/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "installCommand": "npm install --no-optional",
+  "buildCommand": "npm run build"
+}
