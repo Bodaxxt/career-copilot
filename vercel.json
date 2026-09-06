@@ -5,6 +5,6 @@
       "use": "@vercel/python"
     }
   ],
-  "installCommand": "pnpm install",
-  "buildCommand": "pnpm build"
+  "installCommand": "npx pnpm@9.15.4 install",
+  "buildCommand": "npx pnpm@9.15.4 build"
 }
