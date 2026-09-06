@@ -5,6 +5,6 @@
       "use": "@vercel/python"
     }
   ],
-  "installCommand": "npm install --no-optional",
-  "buildCommand": "npm run build"
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm build"
 }
