@@ -5,6 +5,8 @@ CareerHub AI - Root CV Parser Module
 
 from utils.cv_parser import (
     parse_cv,
+    parse_cv_from_text,
+    extract_raw_text_from_pdf,
     get_gemini_api_key,
     CV_EXTRACTION_PROMPT,
     MAX_FILE_SIZE_MB,
@@ -14,6 +16,8 @@ from utils.cv_parser import (
 
 __all__ = [
     "parse_cv",
+    "parse_cv_from_text",
+    "extract_raw_text_from_pdf",
     "get_gemini_api_key",
     "CV_EXTRACTION_PROMPT",
     "MAX_FILE_SIZE_MB",
