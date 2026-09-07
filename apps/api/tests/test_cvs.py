@@ -46,20 +46,33 @@ async def test_upload_success(mock_user, mock_db_session):
     app.dependency_overrides[get_current_user] = lambda: mock_user
     app.dependency_overrides[get_db] = lambda: mock_db_session
 
-    try:
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as ac:
-            pdf_content = b"%PDF-1.4 dummy pdf content for testing CV upload"
-            files = {"file": ("my_resume.pdf", io.BytesIO(pdf_content), "application/pdf")}
-            headers = {"Authorization": "Bearer test-mock-token"}
-            response = await ac.post("/api/v1/cvs/upload", files=files, headers=headers)
+    from unittest.mock import patch
 
-        assert response.status_code == 201
-        data = response.json()
-        assert "cv_id" in data
-        assert "file_url" in data
-        assert data["status"] == "parsed_pending"
-        assert data["original_filename"] == "my_resume.pdf"
+    try:
+        with patch(
+            "app.services.queue_service.QueueService.enqueue_cv_parsing",
+            return_value="mock-celery-task-id",
+        ):
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as ac:
+                pdf_content = b"%PDF-1.4 dummy pdf content for testing CV upload"
+                files = {
+                    "file": (
+                        "my_resume.pdf",
+                        io.BytesIO(pdf_content),
+                        "application/pdf",
+                    )
+                }
+                headers = {"Authorization": "Bearer test-mock-token"}
+                response = await ac.post("/api/v1/cvs/upload", files=files, headers=headers)
+
+            assert response.status_code == 201
+            data = response.json()
+            assert "cv_id" in data
+            assert "file_url" in data
+            assert data["status"] == "uploaded"
+            assert data["task_id"] == "mock-celery-task-id"
+            assert data["original_filename"] == "my_resume.pdf"
     finally:
         app.dependency_overrides.clear()
 

@@ -19,6 +19,8 @@ class Settings(BaseSettings):
         "postgresql+asyncpg://postgres:postgres_password@localhost:5432/career_copilot"
     )
     REDIS_URL: str = "redis://localhost:6379/0"
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
 
     OPENAI_API_KEY: str = ""
 

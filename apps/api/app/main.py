@@ -8,6 +8,7 @@ from app.routers.assessment import router as assessment_router
 from app.routers.cvs import router as cvs_router
 from app.routers.health import router as health_router
 from app.routers.resume import router as resume_router
+from app.routers.tasks import router as tasks_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -35,6 +36,7 @@ app.include_router(health_router, prefix=settings.API_V1_STR)
 app.include_router(assessment_router, prefix=settings.API_V1_STR)
 app.include_router(resume_router, prefix=settings.API_V1_STR)
 app.include_router(cvs_router, prefix=settings.API_V1_STR)
+app.include_router(tasks_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/")

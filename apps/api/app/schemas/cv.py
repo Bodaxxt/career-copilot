@@ -16,7 +16,8 @@ class CVUploadResponse(BaseModel):
 
     cv_id: str
     file_url: str
-    status: str = "parsed_pending"
+    status: str = "uploaded"
+    task_id: Optional[str] = None
     original_filename: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

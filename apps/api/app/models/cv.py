@@ -37,6 +37,10 @@ class CV(Base, TimestampMixin):
     file_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     raw_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="uploaded", nullable=False, index=True)
+    embedding_status: Mapped[Optional[str]] = mapped_column(
+        String(50), default="pending", nullable=True, index=True
+    )
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="cvs")
