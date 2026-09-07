@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.state_manager import init_session_state, require_cv_profile
+from utils.state_manager import init_session_state, require_cv_profile, render_auth_sidebar
 
 # 1. تهيئة حالة الجلسة
 init_session_state()
@@ -11,7 +11,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# 3. التحقق الإلزامي من وجود السيرة الذاتية
+# 3. عرض مصادقة الشريط الجانبي والتحقق الإلزامي من وجود السيرة الذاتية
+render_auth_sidebar()
 profile = require_cv_profile()
 
 st.title("🏛️ لوحة تحكم الخريجين والجامعات (B2B University Dashboard)")
@@ -21,10 +22,14 @@ st.divider()
 
 # ملخص بيانات التعليم للخريج الحالي
 st.subheader("🎓 بيانات التعليم الأكاديمي للمرشح")
-education_list = profile.get("education", [])
+education_list = profile.education if hasattr(profile, "education") else profile.get("education", [])
 if education_list:
     for edu in education_list:
-        st.info(f"🏛️ **الجامعة:** {edu.get('university') or 'غير محدد'} | **الدرجة:** {edu.get('degree') or 'غير محدد'} | **التخصص:** {edu.get('field') or 'غير محدد'} | **سنة التخرج:** {edu.get('year') or 'غير محدد'}")
+        u = edu.university if hasattr(edu, "university") else edu.get("university")
+        d = edu.degree if hasattr(edu, "degree") else edu.get("degree")
+        f = edu.field if hasattr(edu, "field") else edu.get("field")
+        y = edu.year if hasattr(edu, "year") else edu.get("year")
+        st.info(f"🏛️ **الجامعة:** {u or 'غير محدد'} | **الدرجة:** {d or 'غير محدد'} | **التخصص:** {f or 'غير محدد'} | **سنة التخرج:** {y or 'غير محدد'}")
 else:
     st.write("لا توجد بيانات تعليم مسجلة.")
 

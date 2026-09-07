@@ -1,6 +1,6 @@
 """
 CareerHub AI - تطبيق التوجيه والتوظيف الذكي
-Sprint 1: ST-04 Profile Object & Comprehensive Skill Normalizer
+Sprint 1: ST-05 Supabase Authentication & Per-User Profile Persistence
 """
 
 import json
@@ -17,6 +17,7 @@ from utils.state_manager import (
     set_parse_status,
     set_demo_mode,
     reset_session,
+    render_auth_sidebar,
 )
 from utils.cv_parser import parse_cv
 from utils.skill_normalizer import normalize_skills
@@ -33,7 +34,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 3. الشريط الجانبي (Sidebar) ومؤشرات الحالة
+# 3. الشريط الجانبي (Sidebar) ومؤشرات الحالة ومكون المصادقة
 with st.sidebar:
     st.image("https://raw.githubusercontent.com/feathericons/feather/master/icons/briefcase.svg", width=42)
     st.title("CareerHub AI")
@@ -73,11 +74,14 @@ with st.sidebar:
     st.markdown("4. 💼 **تدقيق LinkedIn** (`pages/3_💼_LinkedIn_Audit.py`)")
     st.markdown("5. 🏛️ **لوحة الجامعات** (`pages/4_🏛️_University_Dashboard.py`)")
 
+    # إضافة عنصر المصادقة السحابية الموحد (Supabase Auth)
+    render_auth_sidebar()
+
 # 4. الترويسة الرئيسية (Hero Section)
 st.title("🚀 CareerHub AI - مساعدك المهني الذكي")
 st.markdown("""
-ارفع سيرتك الذاتية لاستخراجها بنموذج **Gemini 1.5 Flash** وهيكلتها بنماذج **Pydantic v2** الصارمة. 
-يقوم النظام تلقائياً بتنقية وتوحيد أكثر من **150+ مهارة تقنية (Skill Normalization)** لضمان أعلى توافق مع أنظمة الـ ATS والبحث الدلالي.
+ارفع سيرتك الذاتية لاستخراجها بنموذج **Gemini 1.5 Flash** وهيكلتها بنماذج **Pydantic v2**. 
+يمكنك توحيد المهارات آلياً عبر **Skill Normalizer**، والتعديل اليدوي، والحفظ السحابي الآمن عبر **Supabase Auth**.
 """)
 
 st.divider()
@@ -108,7 +112,6 @@ with col_upload:
                         set_raw_pdf_text(raw_text)
 
                     if parsed_dict:
-                        # توحيد واعتماد السيرة الذاتية مباشرة
                         set_user_profile(parsed_dict, demo_mode=False, show_toast=True)
                         st.rerun()
                     else:
@@ -270,7 +273,6 @@ if raw_draft is not None:
 
             submitted = st.form_submit_button("💾 حفظ التعديلات واعتماد السيرة الذاتية وتوحيد المهارات", type="primary", use_container_width=True)
             if submitted:
-                # استخراج وتوحيد المهارات
                 raw_input_skills = [s.strip() for s in edit_skills_input.split(",") if s.strip()]
                 normalized_skills_result = normalize_skills(raw_input_skills)
 

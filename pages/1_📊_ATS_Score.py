@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.state_manager import init_session_state, require_cv_profile
+from utils.state_manager import init_session_state, require_cv_profile, render_auth_sidebar
 
 # 1. تهيئة حالة الجلسة
 init_session_state()
@@ -11,7 +11,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# 3. التحقق الإلزامي من وجود السيرة الذاتية
+# 3. عرض مصادقة الشريط الجانبي والتحقق الإلزامي من وجود السيرة الذاتية
+render_auth_sidebar()
 profile = require_cv_profile()
 
 st.title("📊 نظام فحص ومطابقة أنظمة تتبع المتقدمين (ATS Evaluation)")
@@ -26,7 +27,7 @@ with col_info1:
 with col_info2:
     st.metric("💼 المسمى المستهدف", profile.get("headline") or "غير محدد")
 with col_info3:
-    st.metric("🛠️ عدد المهارات", len(profile.get("skills", [])))
+    st.metric("🛠️ عدد المهارات الموحدة", len(profile.skills) if hasattr(profile, "skills") else len(profile.get("skills", [])))
 
 st.divider()
 
@@ -47,7 +48,7 @@ with col_right:
                "سيتم ربط محرك الـ ATS Scoring المتقدم بنموذج Gemini في التحديث القادم.")
 
 with st.expander("🔍 استعراض المهارات المستخرجة للتحليل", expanded=True):
-    skills = profile.get("skills", [])
+    skills = profile.skills if hasattr(profile, "skills") else profile.get("skills", [])
     if skills:
         st.write(", ".join([f"`{s}`" for s in skills]))
     else:

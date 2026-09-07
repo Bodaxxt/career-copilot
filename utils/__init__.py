@@ -10,6 +10,15 @@ from .skill_normalizer import (
     SkillNormalizer,
     normalize_skills,
 )
+from .supabase_client import (
+    is_supabase_configured,
+    get_supabase_client,
+    sign_in_user,
+    sign_up_user,
+    sign_out_user,
+    save_profile_to_db,
+    load_profile_from_db,
+)
 from .state_manager import (
     init_session_state,
     require_cv_profile,
@@ -23,6 +32,11 @@ from .state_manager import (
     set_parse_status,
     set_demo_mode,
     reset_session,
+    get_auth_user,
+    is_user_logged_in,
+    set_auth_user,
+    clear_auth_user,
+    render_auth_sidebar,
     DEMO_PROFILE_DATA,
 )
 from .cv_parser import (
@@ -42,6 +56,13 @@ __all__ = [
     "Project",
     "SkillNormalizer",
     "normalize_skills",
+    "is_supabase_configured",
+    "get_supabase_client",
+    "sign_in_user",
+    "sign_up_user",
+    "sign_out_user",
+    "save_profile_to_db",
+    "load_profile_from_db",
     "init_session_state",
     "require_cv_profile",
     "get_user_profile",
@@ -54,6 +75,11 @@ __all__ = [
     "set_parse_status",
     "set_demo_mode",
     "reset_session",
+    "get_auth_user",
+    "is_user_logged_in",
+    "set_auth_user",
+    "clear_auth_user",
+    "render_auth_sidebar",
     "DEMO_PROFILE_DATA",
     "parse_cv",
     "parse_cv_from_text",

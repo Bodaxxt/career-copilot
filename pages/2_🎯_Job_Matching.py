@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.state_manager import init_session_state, require_cv_profile
+from utils.state_manager import init_session_state, require_cv_profile, render_auth_sidebar
 
 # 1. تهيئة حالة الجلسة
 init_session_state()
@@ -11,7 +11,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# 3. التحقق الإلزامي من وجود السيرة الذاتية
+# 3. عرض مصادقة الشريط الجانبي والتحقق الإلزامي من وجود السيرة الذاتية
+render_auth_sidebar()
 profile = require_cv_profile()
 
 st.title("🎯 محرك مطابقة الوظائف الذكي (RAG Job Matching)")
@@ -43,11 +44,15 @@ if st.button("🔍 تحليل نسبة التطابق والفجوات (Gap Anal
         st.info("⏳ سيتم تفعيل محرك RAG المعتمد على الـ Embeddings في Sprint 2 لمقارنة المتطلبات مباشرة.")
 
 with st.expander("💼 ملخص الخبرات المعتمدة في المطابقة"):
-    experiences = profile.get("experiences", [])
+    experiences = profile.experiences if hasattr(profile, "experiences") else profile.get("experiences", [])
     if experiences:
         for exp in experiences:
-            st.markdown(f"**{exp.get('title')}** في **{exp.get('company')}** ({exp.get('period')})")
-            for ach in exp.get("achievements", []):
+            t = exp.title if hasattr(exp, "title") else exp.get("title")
+            c = exp.company if hasattr(exp, "company") else exp.get("company")
+            p = exp.period if hasattr(exp, "period") else exp.get("period")
+            ach_list = exp.achievements if hasattr(exp, "achievements") else exp.get("achievements", [])
+            st.markdown(f"**{t}** في **{c}** ({p})")
+            for ach in ach_list:
                 st.write(f"- {ach}")
     else:
         st.write("لا توجد خبرات مسجلة.")

@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.state_manager import init_session_state, require_cv_profile
+from utils.state_manager import init_session_state, require_cv_profile, render_auth_sidebar
 
 # 1. تهيئة حالة الجلسة
 init_session_state()
@@ -11,7 +11,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# 3. التحقق الإلزامي من وجود السيرة الذاتية
+# 3. عرض مصادقة الشريط الجانبي والتحقق الإلزامي من وجود السيرة الذاتية
+render_auth_sidebar()
 profile = require_cv_profile()
 
 st.title("💼 مدقق ومطور الملف الشخصي على LinkedIn")
@@ -38,11 +39,14 @@ with col2:
     """)
 
 with st.expander("🚀 المشاريع المتاحة لإبرازها في LinkedIn"):
-    projects = profile.get("projects", [])
+    projects = profile.projects if hasattr(profile, "projects") else profile.get("projects", [])
     if projects:
         for proj in projects:
-            st.markdown(f"**{proj.get('name')}**")
-            st.write(f"- التقنيات: {', '.join(proj.get('technologies', []))}")
-            st.write(f"- الوصف: {proj.get('description')}")
+            n = proj.name if hasattr(proj, "name") else proj.get("name")
+            t = proj.technologies if hasattr(proj, "technologies") else proj.get("technologies", [])
+            d = proj.description if hasattr(proj, "description") else proj.get("description")
+            st.markdown(f"**{n}**")
+            st.write(f"- التقنيات: {', '.join(t)}")
+            st.write(f"- الوصف: {d}")
     else:
         st.write("لا توجد مشاريع مسجلة.")

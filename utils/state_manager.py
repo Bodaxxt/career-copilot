@@ -1,6 +1,6 @@
 """
 مدير حالة الجلسة (Session State Manager) لتطبيق CareerHub AI
-يدعم إدارة كائنات UserProfile الهيكلية (Pydantic v2)، وتوحيد المهارات عبر SkillNormalizer.
+يدعم إدارة كائنات UserProfile الهيكلية، وتوحيد المهارات، والتكامل السحابي مع Supabase Auth.
 """
 
 from datetime import datetime
@@ -9,6 +9,14 @@ import streamlit as st
 
 from .models import UserProfile
 from .skill_normalizer import normalize_skills
+from .supabase_client import (
+    is_supabase_configured,
+    sign_in_user,
+    sign_up_user,
+    sign_out_user,
+    save_profile_to_db,
+    load_profile_from_db,
+)
 
 # بيانات تجريبية واقعية ومحدثة للـ Demo Mode
 DEMO_PROFILE_DATA: Dict[str, Any] = {
@@ -100,11 +108,46 @@ def init_session_state() -> None:
     if "demo_mode" not in st.session_state:
         st.session_state["demo_mode"] = False
 
+    # متغيرات المصادقة والتخزين السحابي (ST-05)
+    if "auth_user" not in st.session_state:
+        st.session_state["auth_user"] = None
+
+    if "is_logged_in" not in st.session_state:
+        st.session_state["is_logged_in"] = False
+
+    if "cloud_synced" not in st.session_state:
+        st.session_state["cloud_synced"] = False
+
+
+def get_auth_user() -> Optional[Dict[str, Any]]:
+    """الحصول على بيانات المستخدم المسجل حالياً."""
+    return st.session_state.get("auth_user", None)
+
+
+def is_user_logged_in() -> bool:
+    """التحقق مما إذا كان المستخدم مسجل دخول."""
+    return bool(st.session_state.get("is_logged_in", False) and st.session_state.get("auth_user"))
+
+
+def set_auth_user(user_data: Optional[Dict[str, Any]]) -> None:
+    """تعيين بيانات المستخدم المسجل."""
+    if user_data:
+        st.session_state["auth_user"] = user_data
+        st.session_state["is_logged_in"] = True
+    else:
+        clear_auth_user()
+
+
+def clear_auth_user() -> None:
+    """مسح بيانات تسجيل الدخول والرجوع لوضع الزائر."""
+    st.session_state["auth_user"] = None
+    st.session_state["is_logged_in"] = False
+    st.session_state["cloud_synced"] = False
+    sign_out_user()
+
 
 def get_user_profile() -> Optional[UserProfile]:
-    """
-    الحصول على بيانات السيرة الذاتية المعتمدة الحالية ككائن UserProfile.
-    """
+    """الحصول على بيانات السيرة الذاتية المعتمدة ككائن UserProfile."""
     raw_profile = st.session_state.get("user_profile", None)
     if raw_profile is None:
         return None
@@ -151,13 +194,8 @@ def set_user_profile(
     show_toast: bool = True
 ) -> UserProfile:
     """
-    اعتماد وحفظ بيانات السيرة الذاتية رسمياً في الجلسة:
-    1. توحيد وتنقية المهارات تلقائياً عبر SkillNormalizer.
-    2. توحيد تقنيات المشاريع.
-    3. التحقق الهيكلي عبر Pydantic v2 (UserProfile).
-    4. حفظ الكائن والـ Dict في الجلسة وتحديث عدد المهارات الموحدة.
+    اعتماد وحفظ بيانات السيرة الذاتية رسمياً في الجلسة مع توحيد المهارات.
     """
-    # تحويل البيانات إلى Dict قابل للتعديل
     if isinstance(profile_data, UserProfile):
         data_dict = profile_data.to_dict()
     else:
@@ -167,7 +205,7 @@ def set_user_profile(
     raw_skills = data_dict.get("skills", [])
     data_dict["skills"] = normalize_skills(raw_skills)
 
-    # 2. توحيد تقنيات المشاريع إن وجدت
+    # 2. توحيد تقنيات المشاريع
     projects = data_dict.get("projects", [])
     if isinstance(projects, list):
         for p in projects:
@@ -209,7 +247,7 @@ def set_demo_mode() -> None:
 
 
 def reset_session() -> None:
-    """إعادة ضبط الجلسة ومسح كافة بيانات السيرة الذاتية."""
+    """إعادة ضبط الجلسة ومسح بيانات السيرة الذاتية المؤقتة."""
     st.session_state["user_profile"] = None
     st.session_state["temp_draft_profile"] = None
     st.session_state["raw_pdf_text"] = None
@@ -223,7 +261,6 @@ def require_cv_profile() -> UserProfile:
     """
     دالة حماية للصفحات الفرعية:
     تتحقق من وجود السيرة الذاتية، وتعرض تنبيهاً وتوقف تنفيذ الصفحة إذا لم تكن متوفرة.
-    ترجع كائن UserProfile جاهز للاستخدام.
     """
     profile = get_user_profile()
     if profile is None:
@@ -234,3 +271,83 @@ def require_cv_profile() -> UserProfile:
             st.rerun()
         st.stop()
     return profile
+
+
+def render_auth_sidebar() -> None:
+    """
+    عنصر واجهة موحد للمصادقة السحابية في الشريط الجانبي (Sidebar).
+    يعمل في الصفحة الرئيسية وكافة الصفحات الفرعية.
+    """
+    st.sidebar.divider()
+    st.sidebar.markdown("### ☁️ الحساب والمزامنة السحابية")
+
+    supabase_active = is_supabase_configured()
+
+    if not supabase_active:
+        st.sidebar.caption("👤 **وضع الزائر (Guest Mode)**")
+        st.sidebar.info("💡 وضع التخزين المؤقت مفعّل (الجلسة الحالية فقط).")
+        return
+
+    # إذا كان Supabase مفعلاً
+    if is_user_logged_in():
+        user = get_auth_user()
+        user_email = user.get("email", "المستخدم") if user else "المستخدم"
+        st.sidebar.success(f"🟢 مرحباً، **{user_email}**")
+
+        col_s1, col_s2 = st.sidebar.columns(2)
+        with col_s1:
+            if st.sidebar.button("☁️ حفظ سحابياً", use_container_width=True, help="حفظ السيرة الذاتية الحالية في حسابك السحابي"):
+                active_profile = get_user_profile()
+                if active_profile and user:
+                    success = save_profile_to_db(user["id"], active_profile.to_dict(), user.get("email"))
+                    if success:
+                        st.toast("☁️ تم حفظ السيرة الذاتية في السحابة بنجاح!", icon="✅")
+                    else:
+                        st.error("فشل الحفظ السحابي.")
+                else:
+                    st.warning("لا توجد سيرة ذاتية معتمدة لحفظها.")
+
+        with col_s2:
+            if st.sidebar.button("🔄 استرجاع السيرة", use_container_width=True, help="استرجاع السيرة الذاتية المحفوظة من حسابك"):
+                if user:
+                    loaded = load_profile_from_db(user["id"])
+                    if loaded:
+                        set_user_profile(loaded, demo_mode=False, show_toast=False)
+                        st.toast("📥 تم استرجاع سيرتك الذاتية من السحابة بنجاح!", icon="🚀")
+                        st.rerun()
+                    else:
+                        st.info("لا توجد سيرة ذاتية محفوظة مسبقاً في حسابك.")
+
+        if st.sidebar.button("🚪 تسجيل الخروج", use_container_width=True):
+            clear_auth_user()
+            st.rerun()
+
+    else:
+        st.sidebar.caption("👤 **وضع الزائر (Guest Mode)**")
+        with st.sidebar.expander("🔐 تسجيل الدخول / إنشاء حساب"):
+            auth_mode = st.radio("العملية:", ["تسجيل الدخول", "حساب جديد"], horizontal=True)
+            auth_email = st.text_input("البريد الإلكتروني:", key="sb_auth_email")
+            auth_pass = st.text_input("كلمة المرور:", type="password", key="sb_auth_pass")
+
+            if auth_mode == "تسجيل الدخول":
+                if st.button("تسجيل الدخول", type="primary", use_container_width=True):
+                    with st.spinner("جاري التحقق..."):
+                        ok, msg, user_data = sign_in_user(auth_email, auth_pass)
+                        if ok and user_data:
+                            set_auth_user(user_data)
+                            # فحص إذا كان للمستخدم بروفايل محفوظ مسبقاً
+                            existing_profile = load_profile_from_db(user_data["id"])
+                            if existing_profile:
+                                set_user_profile(existing_profile, demo_mode=False, show_toast=False)
+                            st.toast(f"مرحباً بك {auth_email}!", icon="👋")
+                            st.rerun()
+                        else:
+                            st.error(msg)
+            else:
+                if st.button("إنشاء الحساب", type="primary", use_container_width=True):
+                    with st.spinner("جاري إنشاء الحساب..."):
+                        ok, msg = sign_up_user(auth_email, auth_pass)
+                        if ok:
+                            st.success(msg)
+                        else:
+                            st.error(msg)
