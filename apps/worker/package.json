@@ -1,8 +1,0 @@
-{
-  "name": "worker",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "celery -A src.main.celery_app worker --loglevel=info"
-  }
-}
