@@ -3,10 +3,12 @@ from pydantic import BaseModel
 
 router = APIRouter(tags=["Health"])
 
+
 class HealthCheck(BaseModel):
     status: str
     service: str
     version: str
+
 
 @router.get("/health", response_model=HealthCheck)
 async def health():

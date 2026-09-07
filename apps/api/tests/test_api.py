@@ -17,7 +17,7 @@ async def test_career_assessment():
     transport = ASGITransport(app=app)
     payload = {
         "skills": ["Python", "FastAPI", "React", "Next.js"],
-        "target_role": "Fullstack AI Engineer"
+        "target_role": "Fullstack AI Engineer",
     }
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         res = await client.post("/api/v1/assessment", json=payload)

@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
-from typing import Optional
-import hmac
+from datetime import datetime
 import hashlib
+
 
 def generate_mock_token(user_id: str) -> str:
     """Generate mock authentication token."""

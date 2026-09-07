@@ -10,11 +10,12 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_secure_password}
       POSTGRES_DB: ${POSTGRES_DB:-career_copilot}
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-career_copilot}"]
+      test:
+        ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-career_copilot}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,17 +25,37 @@ services:
     container_name: career_copilot_redis
     restart: always
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: career_copilot_api
+    restart: always
+    ports:
+      - '8000:8000'
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres_secure_password@postgres:5432/career_copilot
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./apps/api/uploads:/app/uploads
+      - uploads_data:/app/uploads
+    depends_on:
+      - postgres
+      - redis
 
 volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  uploads_data:
     driver: local

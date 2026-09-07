@@ -1,6 +1,7 @@
 import os
 from typing import Dict, Any
 
+
 class AIService:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY", "")

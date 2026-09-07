@@ -20,6 +20,7 @@ out/
 build/
 dist/
 .turbo/
+*.tsbuildinfo
 
 # Python
 __pycache__/
@@ -72,3 +73,8 @@ lerna-debug.log*
 *.tfstate
 *.tfstate.*
 .terraform/
+
+# Uploads
+uploads/
+apps/api/uploads/
+

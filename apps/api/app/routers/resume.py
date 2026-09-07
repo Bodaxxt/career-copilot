@@ -4,15 +4,18 @@ from typing import List
 
 router = APIRouter(prefix="/resumes", tags=["Resumes"])
 
+
 class ResumeAnalyzeRequest(BaseModel):
     content: str
     target_job_description: str | None = None
+
 
 class ResumeAnalyzeResponse(BaseModel):
     score: int
     matched_keywords: List[str]
     missing_keywords: List[str]
     suggestions: List[str]
+
 
 @router.post("/analyze", response_model=ResumeAnalyzeResponse)
 async def analyze_resume(req: ResumeAnalyzeRequest):
@@ -23,5 +26,5 @@ async def analyze_resume(req: ResumeAnalyzeRequest):
         suggestions=[
             "Add measurable metrics to past work experiences.",
             "Highlight experience with distributed queue systems like Celery/Redis.",
-        ]
+        ],
     )

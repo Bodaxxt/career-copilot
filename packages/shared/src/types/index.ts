@@ -22,3 +22,5 @@ export interface ResumeAnalysis {
   keywordsFound: string[];
   suggestedBulletPoints: string[];
 }
+
+export * from './upload';
