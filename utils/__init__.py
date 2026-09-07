@@ -1,5 +1,15 @@
 """CareerHub AI Utilities Package"""
 
+from .models import (
+    UserProfile,
+    Experience,
+    Education,
+    Project,
+)
+from .skill_normalizer import (
+    SkillNormalizer,
+    normalize_skills,
+)
 from .state_manager import (
     init_session_state,
     require_cv_profile,
@@ -26,6 +36,12 @@ from .cv_parser import (
 )
 
 __all__ = [
+    "UserProfile",
+    "Experience",
+    "Education",
+    "Project",
+    "SkillNormalizer",
+    "normalize_skills",
     "init_session_state",
     "require_cv_profile",
     "get_user_profile",
