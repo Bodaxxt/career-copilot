@@ -3,8 +3,10 @@
 .env.local
 .env.*.local
 .env.development
-.env.test
+.env.staging
 .env.production
+.env.test
+*.env
 
 # Dependencies
 node_modules/
