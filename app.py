@@ -59,23 +59,22 @@ with st.sidebar:
         st.warning("🟡 قيد التعديل والمراجعة اليدوية")
     else:
         st.error("🔴 بانتظار رفع السيرة الذاتية")
-        st.caption("ارفع ملف PDF أو استخدم الوضع التجريبي للبدء.")
 
     if current_profile or get_temp_draft_profile():
-        if st.button("🔄 إعادة ضبط ومسح البيانات", use_container_width=True):
+        if st.button("🔄 مسح وإعادة الضبط", use_container_width=True):
             reset_session()
             st.rerun()
 
+    # عنصر المصادقة السحابية الموحد (Supabase Auth)
+    render_auth_sidebar()
+
     st.divider()
-    st.markdown("### 📌 الخطوات والصفحات المتاحة:")
-    st.markdown("1. 📄 **الرئيسية (رفع وتدقيق الـ CV)** `[أنت هنا]`")
+    st.markdown("### 📌 الصفحات المتاحة:")
+    st.markdown("1. 📄 **الرئيسية (رفع وتدقيق الـ CV)**")
     st.markdown("2. 📊 **تقييم الـ ATS** (`pages/1_📊_ATS_Score.py`)")
     st.markdown("3. 🎯 **مطابقة الوظائف (RAG)** (`pages/2_🎯_Job_Matching.py`)")
     st.markdown("4. 💼 **تدقيق LinkedIn** (`pages/3_💼_LinkedIn_Audit.py`)")
     st.markdown("5. 🏛️ **لوحة الجامعات** (`pages/4_🏛️_University_Dashboard.py`)")
-
-    # إضافة عنصر المصادقة السحابية الموحد (Supabase Auth)
-    render_auth_sidebar()
 
 # 4. الترويسة الرئيسية (Hero Section)
 st.title("🚀 CareerHub AI - مساعدك المهني الذكي")

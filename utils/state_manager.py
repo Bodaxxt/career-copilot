@@ -286,6 +286,18 @@ def render_auth_sidebar() -> None:
     if not supabase_active:
         st.sidebar.caption("👤 **وضع الزائر (Guest Mode)**")
         st.sidebar.info("💡 وضع التخزين المؤقت مفعّل (الجلسة الحالية فقط).")
+        with st.sidebar.expander("⚙️ ضبط مفاتيح Supabase يدوياً"):
+            custom_url = st.text_input("Supabase URL:", value=st.session_state.get("custom_sb_url", ""), placeholder="https://xxx.supabase.co")
+            custom_key = st.text_input("Supabase Key (anon):", value=st.session_state.get("custom_sb_key", ""), type="password", placeholder="eyJhbGciOi...")
+            if st.button("تطبيق المفاتيح الآن", use_container_width=True):
+                if custom_url and custom_key:
+                    import os
+                    os.environ["SUPABASE_URL"] = custom_url.strip()
+                    os.environ["SUPABASE_KEY"] = custom_key.strip()
+                    st.session_state["custom_sb_url"] = custom_url.strip()
+                    st.session_state["custom_sb_key"] = custom_key.strip()
+                    st.success("تم تطبيق المفاتيح بنجاح!")
+                    st.rerun()
         return
 
     # إذا كان Supabase مفعلاً
@@ -324,7 +336,7 @@ def render_auth_sidebar() -> None:
 
     else:
         st.sidebar.caption("👤 **وضع الزائر (Guest Mode)**")
-        with st.sidebar.expander("🔐 تسجيل الدخول / إنشاء حساب"):
+        with st.sidebar.expander("🔐 تسجيل الدخول / إنشاء حساب", expanded=True):
             auth_mode = st.radio("العملية:", ["تسجيل الدخول", "حساب جديد"], horizontal=True)
             auth_email = st.text_input("البريد الإلكتروني:", key="sb_auth_email")
             auth_pass = st.text_input("كلمة المرور:", type="password", key="sb_auth_pass")
@@ -335,7 +347,6 @@ def render_auth_sidebar() -> None:
                         ok, msg, user_data = sign_in_user(auth_email, auth_pass)
                         if ok and user_data:
                             set_auth_user(user_data)
-                            # فحص إذا كان للمستخدم بروفايل محفوظ مسبقاً
                             existing_profile = load_profile_from_db(user_data["id"])
                             if existing_profile:
                                 set_user_profile(existing_profile, demo_mode=False, show_toast=False)
